@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
@@ -26,11 +26,15 @@ export class AuthService {
 
   public async createUser(username?: string, password?: string) {
     if (!username) {
-      return { ok: false, message: ERROR_MESSAGES.USERNAME_REQUIRED };
+      throw new BadRequestException({
+        error: ERROR_MESSAGES.USERNAME_REQUIRED,
+      });
     }
 
     if (!password) {
-      return { ok: false, message: ERROR_MESSAGES.PASSWORD_REQUIRED };
+      throw new BadRequestException({
+        error: ERROR_MESSAGES.USERNAME_REQUIRED,
+      });
     }
 
     const user = await this.findUserByUsername(username);
@@ -56,6 +60,10 @@ export class AuthService {
       }
     }
 
+    if (!response.ok) {
+      throw new BadRequestException({ error: response.message });
+    }
+
     return response;
   }
 
@@ -65,22 +73,30 @@ export class AuthService {
 
   public async loginUser(username?: string, password?: string) {
     if (!username) {
-      return { ok: false, message: ERROR_MESSAGES.USERNAME_REQUIRED };
+      throw new BadRequestException({
+        error: ERROR_MESSAGES.USERNAME_REQUIRED,
+      });
     }
 
     if (!password) {
-      return { ok: false, message: ERROR_MESSAGES.PASSWORD_REQUIRED };
+      throw new BadRequestException({
+        error: ERROR_MESSAGES.PASSWORD_REQUIRED,
+      });
     }
 
     const user: User = await this.findUserByUsername(username);
     if (!user) {
-      return { ok: false, message: ERROR_MESSAGES.USER_NOT_FOUNDED };
+      throw new BadRequestException({
+        error: ERROR_MESSAGES.USER_NOT_FOUNDED,
+      });
     }
 
     const result = await this.validatePassword(user, password);
 
     if (!result) {
-      return { ok: false, message: ERROR_MESSAGES.USER_NOT_FOUNDED };
+      throw new BadRequestException({
+        error: ERROR_MESSAGES.USER_NOT_FOUNDED,
+      });
     }
 
     const token: string = this.createJwtPayload(user);
